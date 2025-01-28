@@ -11,7 +11,7 @@ export const authenticateToken = (req: Request, res: Response, next: NextFunctio
 
     if (!authHeader) { return res.status(401).json({ message: 'Unauthorized: No token' }); }
 
-    const authToken = authHeader.split(' ')[1]; // Bearer <token>
+    const authToken = authHeader.split(' ')[1]; 
 
     try {
         (req as any).user = jwt.verify(authToken, secret);

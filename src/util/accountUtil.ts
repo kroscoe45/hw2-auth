@@ -1,6 +1,6 @@
 import db from "../database";
+import { hashPassword } from "./hashPassword";
 import exp from "node:constants";
-
 
 /**
  * Check if a username is valid for registration
@@ -22,7 +22,7 @@ const checkUsername = async (username: string): Promise<{ errors: string[], stat
                     db.get(
                         'SELECT COUNT(*) as count FROM accounts WHERE username = ? COLLATE NOCASE',
                         [value],
-                        (err, row: { count: number }) => {
+                        (err : Error, row: { count: number }) => {
                             if (err) return reject(err);
                             resolve(row.count > 0);
                         }
@@ -101,7 +101,7 @@ const checkPassword = (password: string): { errors: string[], statusCode: number
     };
 };
 
-const registrationPrecheck = async (username: string, password: string) => {
+const registrationPrecheck = async (username: string, password: string)  => {
     const {errors: usernameErrors, statusCode: usernameStatusCode} = await checkUsername(username);
     const {errors: passwordErrors, statusCode: passwordStatusCode} = checkPassword(password);
     return {
@@ -112,4 +112,28 @@ const registrationPrecheck = async (username: string, password: string) => {
     };
 }
 
-export { registrationPrecheck };
+// this function should only be called after registrationPrecheck
+const registerAccount = async (username: string, hashedPassword: string): Promise<{ account?: any, error?: string, statusCode: number }> => {
+    try {
+        return new Promise((resolve, reject) => {
+            db.serialize(() => {
+                db.run('INSERT INTO accounts (username, password) VALUES (?, ?)', [username, hashedPassword], function (err : Error) {
+                    if (err) {
+                        return reject({ error: "Failed to insert account", statusCode: 500 });
+                    }
+                    db.get('SELECT * FROM accounts WHERE username = ?', [username], (err, row) => {
+                        if (err) {
+                            return reject({ error: "Failed to retrieve account", statusCode: 500 });
+                        }
+                        resolve({ account: row, statusCode: 201 });
+                    });
+                });
+            });
+        });
+    } catch (err: any) {
+        return { error: err?.message || "An unexpected error occurred", statusCode: 500 };
+    }
+}
+
+
+export { registrationPrecheck, registerAccount };

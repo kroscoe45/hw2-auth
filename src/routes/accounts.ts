@@ -1,34 +1,30 @@
-import express, {Request, Response} from 'express';
-import {hashPassword, comparePasswords} from '../util/hashPassword';
-import {generateToken} from '../util/authTokenGenerator';
-import {authenticateToken} from '../middleware/authManager';
-import db from '../database';
-import {registrationPrecheck} from "../util/accountUtil";
+import { Router, Request, Response } from 'express';
+import {hashPassword } from '../util/hashPassword';
+import { registrationPrecheck, registerAccount } from "../util/accountUtil";
 
-const router = express.Router();
+const router = Router();
 
-router.post('/register', async (req: Request, res: Response) => {
-    const { username, password, ...rest } = req.body;
-    const regCheck = await registrationPrecheck(username, password);
-    if (!regCheck.canRegister()) {
-        res.status(regCheck.statusCode)
+router.post('/signup', async (req: Request, res: Response): Promise<void> => {
+    const { username, password } = req.body;
+    try {
+        const regCheck = await registrationPrecheck(username, password);
+        if (!regCheck.canRegister()) {
+            res.status(regCheck.statusCode)
             .send('Unable to proceed with registration:\n' +
                  regCheck.usernameErrors.join('\n') + '\n' +
-                 regCheck.passwordErrors.join('\n'))
-        return;
-    }
-    const hashedPassword = await hashPassword(password);
-    db.serialize(() => {
-        db.run(
-            'INSERT INTO accounts (username, password) VALUES (?, ?)',
-            [username, hashedPassword],
-            function (err) {
-                if (err) {
-                    res.status(500).send('Error inserting account');
-                    return;
-                }
-                res.status(201).send({id: this.lastID, username});
+                 regCheck.passwordErrors.join('\n'));
+        } else {
+            try {
+                await registerAccount(username, password);
+                res.status(200).send('Registration successful');
             }
-        );
-    });
+            catch (err) {
+                res.status(500).send('Error inserting account');
+            }
+        }
+    } catch (err) {
+        res.status(500).send('Error inserting account');
+    }
 });
+
+export { router as accountsRouter };
