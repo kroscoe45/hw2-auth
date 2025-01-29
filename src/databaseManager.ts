@@ -10,7 +10,6 @@ const databasePool = mysql.createPool({
     queueLimit: 0,
   });
 
-
 //detail the schema for the MySQL database
 const databaseSchema = {
   accounts: [
