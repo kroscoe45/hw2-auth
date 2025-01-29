@@ -1,5 +1,5 @@
 import { connect } from "http2";
-import { databasePool } from "../database";
+import { databasePool } from "../databaseManager";
 import { hashPassword } from "./passwordUtil";
 
 /**
