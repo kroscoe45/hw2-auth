@@ -1,6 +1,6 @@
-import db from "../database";
-import { hashPassword } from "./hashPassword";
-import exp from "node:constants";
+import { connect } from "http2";
+import { databasePool } from "../database";
+import { hashPassword } from "./passwordUtil";
 
 /**
  * Check if a username is valid for registration
@@ -101,7 +101,7 @@ const checkPassword = (password: string): { errors: string[], statusCode: number
     };
 };
 
-const registrationPrecheck = async (username: string, password: string)  => {
+const checkValidCredentials = async (username: string, password: string)  => {
     const {errors: usernameErrors, statusCode: usernameStatusCode} = await checkUsername(username);
     const {errors: passwordErrors, statusCode: passwordStatusCode} = checkPassword(password);
     return {
@@ -115,20 +115,31 @@ const registrationPrecheck = async (username: string, password: string)  => {
 // this function should only be called after registrationPrecheck
 const registerAccount = async (username: string, hashedPassword: string): Promise<{ account?: any, error?: string, statusCode: number }> => {
     try {
-        return new Promise((resolve, reject) => {
-            db.serialize(() => {
-                db.run('INSERT INTO accounts (username, password) VALUES (?, ?)', [username, hashedPassword], function (err : Error) {
+        const databaseConnection = databasePool.getConnection()
+        .then(connection => {
+            const 
+        )
+        return await new Promise<{ account?: any, error?: string, statusCode: number }>((resolve, reject) => {
+            databaseRef.run(
+                'INSERT INTO accounts (username, password) VALUES (?, ?)',
+                [username, hashedPassword],
+                function (err) {
                     if (err) {
-                        return reject({ error: "Failed to insert account", statusCode: 500 });
+                        reject({ error: err.message, statusCode: 500 });
+                        return;
                     }
-                    db.get('SELECT * FROM accounts WHERE username = ?', [username], (err, row) => {
-                        if (err) {
-                            return reject({ error: "Failed to retrieve account", statusCode: 500 });
+                    db.get(
+                        'SELECT id, username FROM accounts WHERE id = ?',
+                        [this.lastID],
+                        (err, row) => {
+                            if (err) {
+                                reject({ error: err.message, statusCode: 500 });
+                                return;
+                            }
+                            resolve({ account: row, statusCode: 200 });
                         }
-                        resolve({ account: row, statusCode: 201 });
-                    });
-                });
-            });
+                    );
+                }
         });
     } catch (err: any) {
         return { error: err?.message || "An unexpected error occurred", statusCode: 500 };
@@ -136,4 +147,4 @@ const registerAccount = async (username: string, hashedPassword: string): Promis
 }
 
 
-export { registrationPrecheck, registerAccount };
+export { checkValidCredentials, registerAccount };

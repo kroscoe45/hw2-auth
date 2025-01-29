@@ -1,18 +1,17 @@
 import { Router, Request, Response } from 'express';
-import {hashPassword } from '../util/hashPassword';
-import { registrationPrecheck, registerAccount } from "../util/accountUtil";
+import { checkValidCredentials, registerAccount } from "../util/accountUtil";
 
 const router = Router();
 
 router.post('/signup', async (req: Request, res: Response): Promise<void> => {
     const { username, password } = req.body;
     try {
-        const regCheck = await registrationPrecheck(username, password);
-        if (!regCheck.canRegister()) {
-            res.status(regCheck.statusCode)
+        const credCheck = await checkValidCredentials(username, password);
+        if (!credCheck.canRegister()) {
+            res.status(credCheck.statusCode)
             .send('Unable to proceed with registration:\n' +
-                 regCheck.usernameErrors.join('\n') + '\n' +
-                 regCheck.passwordErrors.join('\n'));
+                credCheck.usernameErrors.join('\n') + '\n' +
+                credCheck.passwordErrors.join('\n'));
         } else {
             try {
                 await registerAccount(username, password);

@@ -6,7 +6,7 @@ const rounds : number = parseInt(process.env.ROUNDS || '10', 10);
 const salt : string | undefined = process.env.SALT;
 
 // hash to avoid storing plain text passwords
-export function hashPassword(password : string) {
+const hashPassword = (password : string) => {
     return new Promise<string>((resolve, reject) => {
         bcrypt.hash(password, salt || rounds, (err, hash) => {
             if (err) {
@@ -18,8 +18,8 @@ export function hashPassword(password : string) {
     });
 }
 
-// compare user's password with the stored hash
-export function comparePasswords(password: string, hash: string): Promise<boolean> {
+// compare given password with the stored hash
+const comparePasswords = (password: string, hash: string): Promise<boolean> => {
     return new Promise<boolean>((resolve, reject) => {
         bcrypt.compare(password, hash, (err, result) => {
             if (err) {
@@ -30,3 +30,5 @@ export function comparePasswords(password: string, hash: string): Promise<boolea
         });
     });
 }
+
+export { hashPassword, comparePasswords };
