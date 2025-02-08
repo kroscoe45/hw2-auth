@@ -1,32 +1,15 @@
+// src/routes
+
 import express, { Request, Response, NextFunction } from "express"
 import { UserDbEntry } from "../types"
-import cookieParser from "cookie-parser"
 import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken"
 import { v4 as uuidv4 } from "uuid"
 import db from "../database"
 
 const router = express.Router()
-router.use(cookieParser())
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key"
 
-// Middleware to check auth token
-const authenticateToken = (req: Request, res: Response, next: NextFunction) => {
-  const token = req.cookies?.token || req.headers.authorization?.split(" ")[1]
-
-  if (!token) {
-    res.status(401).json({ error: "Authentication required" })
-    return
-  }
-
-  try {
-    const user = jwt.verify(token, JWT_SECRET)
-    req.body.user = user
-    next()
-  } catch {
-    res.status(401).json({ error: "Invalid token" })
-  }
-}
 
 router.post("/signup", async (req, res) => {
   const { username, password } = req.body

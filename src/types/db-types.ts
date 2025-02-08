@@ -1,26 +1,11 @@
-import { accessSync } from "fs"
-import { UserRole } from "./resource-types"
+// src/types
+
+import { AccessControl } from "./resource-types"
 import { ObjectId } from "mongodb"
-import exp from "constants"
 export enum VOTE {
   UP = 1,
   DOWN = -1,
 }
-
-export interface UserDbEntry {
-  id: string
-  username: string
-  hashedPassword: string
-  roles: UserRole[]
-  createdAt: Date
-}
-
-export interface ResourceMetadata {
-  key: string
-  value: string
-}
-
-export interface AccessControl<IDType extends string> {}
 
 export abstract class BaseResource<IDType extends string> {
   constructor(
@@ -48,18 +33,6 @@ interface AlbumData {
   releaseYear: number
 }
 
-export enum AccessType {
-  READ = "read",
-  WRITE = "write",
-  ADMIN = "admin",
-}
-
-export interface PlaylistAccess {
-  userId: string
-  accessType: AccessType
-  expires: string // ISO date string
-}
-
 export interface PlaylistDocument {
   _id: ObjectId
   userId: string
@@ -69,7 +42,7 @@ export interface PlaylistDocument {
     trackId: string
     position: number
   }>
-  definedAccess: PlaylistAccess[]
+  
   createdAt: Date
   updatedAt: Date
 }

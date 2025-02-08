@@ -1,37 +1,54 @@
-export interface User {
-  id: string
-  name: string
-  email: string
-  role: string
+// src/types/resource-types.ts
+
+import { UserId, PlaylistId, TrackId } from './id';
+
+// a missing field in the AccessControl type means
+// any user can access - use empty array to specify NO access (weirdo)
+export interface AccessControl {
+  read? : {
+    users : UserId[]
+    groups : string[]
+  }
+  write? : {
+    users : UserId[]
+    groups : string[]
+  }
+  modify? : { // Can modify access control/resource settings
+    users : UserId[]
+    groups : string[]
+  } 
+  delete? : {
+    users : UserId[]
+    groups : string[]
+  }
 }
 
-export interface PlaylistTrack {
-  trackId: string
-  position: number
+export interface Resource {
+  createdAt: Date;
+  updatedAt: Date;
+  owner?: UserId; // no owner means it is managed by the server
+  accessControl: AccessControl[];
 }
 
-export enum UserRole {
-  ADMIN = "admin",
-  USER = "user",
-  ONBOARDING = "onboarding",
-  ARTIST = "artist",
-  LABEL = "label",
+export interface User extends Resource {
+  id: UserId;
+  username: string;
+  hashedPassword: string;
 }
 
-export interface Playlist {
-  id: string
-  userId: string
-  name: string
-  isPublic: boolean
-  tracks: PlaylistTrack[]
-  createdAt: Date
-  updatedAt: Date
+export interface Playlist extends Resource {
+  id: PlaylistId;
+  name: string;
+  tracks: TrackId[];
 }
 
-export interface Tag {
-  trackId: string
-  tag: string
-  userId: string
-  vote: -1 | 1
-  createdAt: Date
+export interface Tag extends Resource {
+  id : string
+  trackId: TrackId;
+  tag: string;
+  createdBy : UserId;
+  votes : {
+    up : UserId[]
+    down : UserId[]
+  }
 }

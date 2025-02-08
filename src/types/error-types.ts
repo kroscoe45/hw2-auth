@@ -1,5 +1,7 @@
+// src/types
+
 export interface ApiError {
-  code: string
+  code: number
   message: string
   details?: Record<string, unknown>
 }
