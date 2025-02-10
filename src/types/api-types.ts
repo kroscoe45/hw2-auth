@@ -1,54 +1,54 @@
-import { UserId, TrackId, AlbumId } from "./id"
+import { UserId, TrackId, AlbumId } from "./db-types"
 
 //region API Response Types
-export interface ApiResponse<T> {
-    data?: T
-    error?: string
-    links: Links
+export type ApiResponse<T> = {
+  data?: T
+  error?: string
+  links: Links
 }
 
-export interface Links {
-    self: Link
-    [key: string]: Link
+export type Links = {
+  self: Link
+  [key: string]: Link
 }
 
-export interface Link {
-    href: string
-    rel: string
-    method?: string
+export type Link = {
+  href: string
+  rel: string
+  method?: string
 }
 //endregion API Response Types
 
 //region API Request Types
-export interface BaseRequest {
-    requestedBy: UserId
-    requestReceived: Date
+export type ApiRequest = {
+  requestedBy: UserId
+  requestReceived: Date
 }
 
-export interface PlaylistCreateRequest extends BaseRequest {
-    playlistName: string
-    isPublic?: boolean 
-    tracks?: TrackId[]
+export type PlaylistCreateRequest = ApiRequest & {
+  playlistName: string
+  isPublic?: boolean
+  tracks?: TrackId[]
 }
 
-export interface PlaylistUpdateRequest {
-    name?: string
-    isPublic?: boolean
+export type PlaylistUpdateRequest = ApiRequest & {
+  name?: string
+  isPublic?: boolean
 }
 
-export interface PlaylistReorderRequest {
-    tracks: Array<{
-        trackId: string
-    }>
+export type PlaylistReorderRequest = ApiRequest & {
+  tracks: Array<{
+    trackId: string
+  }>
 }
 
-export interface TagSuggestRequest {
-    trackId: TrackId
-    tag: string
+export type TagSuggestRequest = ApiRequest & {
+  trackId: TrackId
+  tag: string
 }
 
-export interface TagVoteRequest {
-    trackId: TrackId
-    tag: string
-    vote: -1 | 1
+export type TagVoteRequest = ApiRequest & {
+  trackId: TrackId
+  tag: string
+  vote: -1 | 1
 }
