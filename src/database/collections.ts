@@ -2,14 +2,14 @@
 import { Collection } from "mongodb"
 import {
   PlaylistDocument,
-  TagDocument,
-  TagVoteDocument,
+  TrackTagDocument,
+  TrackTagVoteDocument,
   UserDocument,
 } from "../types"
 
 export interface DatabaseCollections {
   playlists: Collection<PlaylistDocument>
-  tags: Collection<TagDocument>
-  tagVotes: Collection<TagVoteDocument>
+  trackTags: Collection<TrackTagDocument>
+  trackTagVotes: Collection<TrackTagVoteDocument>
   users: Collection<UserDocument>
 }

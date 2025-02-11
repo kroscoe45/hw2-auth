@@ -3,10 +3,10 @@ import { MongoClient, Db } from "mongodb"
 import { dbConfig } from "./config"
 import { DatabaseCollections } from "./collections"
 import { createIndexes } from "./indexes"
-import { UserRepository } from "./repositories/user-repository"
-import { PlaylistRepository } from "./repositories/playlist-repository"
-import { TagRepository } from "./repositories/tag-repository"
-import { TagVoteRepository } from "./repositories/tag-vote-repository"
+import { UserRepository } from "./repositories/user-repo"
+import { PlaylistRepository } from "./repositories/playlist-repo"
+import { TagRepository } from "./repositories/tag-repo"
+
 import {
   PlaylistDocument,
   TrackTagDocument,
@@ -23,7 +23,6 @@ class Database {
   private _users: UserRepository
   private _playlists: PlaylistRepository
   private _tags: TagRepository
-  private _tagVotes: TagVoteRepository
 
   constructor() {
     this.client = null!
@@ -32,34 +31,31 @@ class Database {
     this._users = null!
     this._playlists = null!
     this._tags = null!
-    this._tagVotes = null!
   }
 
   async connect(): Promise<void> {
     try {
       this.client = await MongoClient.connect(dbConfig.uri)
-      this.db = this.client.db(dbConfig.dbName)
 
-      // Initialize collections
+      this.db = this.client.db(dbConfig.dbName)
       this.collections = {
         users: this.db.collection<UserDocument>("users"),
         playlists: this.db.collection<PlaylistDocument>("playlists"),
-        tags: this.db.collection<TrackTagDocument>("tags"),
-        tagVotes: this.db.collection<TrackTagVoteDocument>("tagVotes"),
+        trackTags: this.db.collection<TrackTagDocument>("tags"),
+        trackTagVotes: this.db.collection<TrackTagVoteDocument>("tagVotes"),
       }
 
       // Initialize repositories
       this._users = new UserRepository(this.collections.users)
       this._playlists = new PlaylistRepository(this.collections.playlists)
-      this._tags = new TagRepository(this.collections.tags)
-      this._tagVotes = new TagVoteRepository(this.collections.tagVotes)
+      this._tags = new TagRepository(
+        this.collections.trackTags,
+        this.collections.trackTagVotes,
+        this.client
+      )
 
-      // Create indexes
       await createIndexes(this.collections)
-
-      console.log("Connected to MongoDB")
     } catch (error) {
-      console.error("Failed to connect to MongoDB:", error)
       throw error
     }
   }
@@ -75,10 +71,6 @@ class Database {
 
   get tags(): TagRepository {
     return this._tags
-  }
-
-  get tagVotes(): TagVoteRepository {
-    return this._tagVotes
   }
 
   async disconnect(): Promise<void> {

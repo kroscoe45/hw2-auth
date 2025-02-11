@@ -1,39 +1,36 @@
-// src/middleware/auth.ts
 import { Request, Response, NextFunction } from "express"
-import jwt from "jsonwebtoken"
-import { UserId } from "../types"
+import jwt, { VerifyErrors } from "jsonwebtoken"
 
-const JWT_SECRET = process.env.JWT_SECRET || "default-secret-change-this"
+const JWT_SECRET = process.env.JWT_SECRET || "supersecretkey"
 
-export interface AuthenticatedUser {
-  id: UserId
-  username: string
-}
-
-export interface AuthenticatedRequest extends Request {
-  user?: AuthenticatedUser
-}
-
-export const authenticateToken = (
-  req: AuthenticatedRequest,
+export const authenticateTokenFromCookie = (
+  req: Request,
   res: Response,
   next: NextFunction
-) => {
-  const token = req.cookies?.token || req.headers.authorization?.split(" ")[1]
+): void => {
+  const token = req.cookies?.token
 
   if (!token) {
-    return res.status(401).json({ error: "Authentication required" })
+    res.status(401).json({ error: "Access Denied. No token provided." })
+    return
   }
 
-  try {
-    const decoded = jwt.verify(token, JWT_SECRET) as AuthenticatedUser
-    req.user = decoded
-    next()
-  } catch (err) {
-    return res.status(401).json({ error: "Invalid token" })
-  }
-}
+  jwt.verify(
+    token,
+    JWT_SECRET,
+    (err: VerifyErrors | null, decoded: any | undefined) => {
+      if (err) {
+        res.status(403).json({ error: "Invalid Token" })
+        return
+      }
 
-export const generateToken = (user: AuthenticatedUser): string => {
-  return jwt.sign(user, JWT_SECRET, { expiresIn: "24h" })
+      if (decoded) {
+        ;(req as any).user = decoded
+        next()
+      } else {
+        res.status(403).json({ error: "Invalid Token" })
+        return
+      }
+    }
+  )
 }

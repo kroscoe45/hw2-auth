@@ -1,6 +1,5 @@
-import { UserId, TrackId, AlbumId } from "./db-types"
+import { UserId, TrackId, AlbumId } from "./types"
 
-//region API Response Types
 export type ApiResponse<T> = {
   data?: T
   error?: string
@@ -17,9 +16,7 @@ export type Link = {
   rel: string
   method?: string
 }
-//endregion API Response Types
 
-//region API Request Types
 export type ApiRequest = {
   requestedBy: UserId
   requestReceived: Date
